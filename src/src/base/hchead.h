@@ -13,9 +13,9 @@
 
 #include "HcData.h"
 
-#define SDK_VER                    (char*)"3.0.12"
+#define SDK_VER                    (char*)"3.0.13"
 
-
+#define SHARK_ENABLE               0
 
 #define  DEBUG_INFO                0
 
@@ -42,13 +42,31 @@
 #define  X2F                            "X2F"
 #define  X2M                            "X2M"
 #define  X2N                            "X2N"
-#define  T1A                            "T1A"
-#define  T3A                            "T3A"
-#define  T3B                            "T3B"
+#define  X2BF                           "X2BF"//speed 6Hz/3Hz
+#define  X2BZ                           "X2BZ"
+#define  X2B2                           "X2B2"
+#define  X2DE                           "X2DE"
+#define  X2MF                           "X2MF"//speed 6Hz/3Hz
+#define  X2MX                           "X2MX"
+#define  X2MM                           "X2MM"
+//#define  X2YJ                           "X2YJ"
+//#define  X2YP                           "X2YP"
+#define  X2YE                           "X2YE"
+
+#define  D2A                            "D2A"
+#define  D2B                            "D2B"
+#define  D2M8                           "D2M8"
+#define  D2A8                           "D2A8"
+#define  D2B8                           "D2B8"
+#define  D2S8                           "D2S8"
+#define  D2SA                           "D2SA"
+#define  D2P8                           "D2P8"
+#define  D2PD                           "D2PD"
+#define  D2M1                           "D2M1"
+#define  D2AE                           "D2AE"
 
 #define  PI_HC                          3.141592653589793
 
-//#define  PACKAGESIZE                    128
 #define  READ_BUFF_SIZE                 256
 #define  READ_TIMEOUT_MS                10
 #define  DEFAULT_ID_LEN                 14
@@ -57,6 +75,10 @@
 #define  FACT_NEW_RESERVE_LEN           6
 #define  FACT_NEW_CAL_LEN               2
 #define  FACT_NEW_HARD_LEN              3
+#define  FACT_SPEED_VER_LEN             2
+#define  FACT_OTHER_RESERVE_LEN         2
+#define  FACT_V06_RESERVE_LEN           3
+#define  FACT_SN_LEN                    20
 
 #define  FAC_INFO_LEN                   12
 #define  RESERVER_LEN                   4
@@ -67,11 +89,12 @@
 #define  MSG_ID                         1
 #define  MSG_CMD                        2
 #define  MSG_POINTCLOUD                 3
+#define  MSG_NEW_SN                     4
 
 #define  FPS_1800_NOR                   1800
-#define  FPS_2000_NOR                   2085
-#define  FPS_3000_NOR                   3000
-#define  FPS_TOF_NOR                    3400
+#define  FPS_2000_NOR                   2088 //2088  // 2100
+#define  FPS_3000_NOR                   3048 //3012 
+#define  FPS_TOF_NOR                    3300
 #define  FPS_1800_RANGE                 50
 #define  FPS_2000_RANGE                 100
 #define  FPS_3000_RANGE                 100
@@ -85,35 +108,50 @@
 #define  FPS_TOF_MAX                    (FPS_TOF_NOR+FPS_TOF_RANGE)
 #define  FPS_TOF_MIN                    (FPS_TOF_NOR-FPS_TOF_RANGE)
 
-
-
 #define  ANGLE_RESOLV_1800              1.09
 #define  ANGLE_RESOLV_2000              0.92  //0.92
+#define  ANGLE_RESOLV_2000_6HZ          1.05 
 #define  ANGLE_RESOLV_3000              0.72 //0.75
 #define  ANGLE_RESOLV_TOF               0.7
 #define  ANGLE_RESOLV_NARWAL_NOR        0.65 //
 #define  ANGLE_RESOLV_NARWAL_LOW        0.55 //
 
+#define  ANGLE_RESOLV_2000_3HZ          0.52  
+#define  ANGLE_RESOLV_3000_3HZ          0.36
+
 #define  CICRLE_MAX_1800                370
 #define  CICRLE_MAX_2000                415  // 5.2hz
+#define  CICRLE_MAX_2000_6HZ            360  // 6hz
 #define  CICRLE_MAX_3000                515  // 6hz
-#define  CICRLE_MAX_TOF                 580  // 6hz  566
+#define  CICRLE_MAX_TOF                 580  // 6hz
 #define  CICRLE_MAX_NARWAL_NOR          585  // 5.3hz  571
 #define  CICRLE_MAX_NARWAL_LOW          760  // 4.2hz   727
+#define  CICRLE_MAX_2000_3HZ            700  // 3hz
+#define  CICRLE_MAX_3000_3HZ            1015  // 3hz
 
-
+#define  SPEED_180_NOR                  180
+#define  SPEED_250_NOR                  250
 #define  SPEED_300_NOR                  300
 #define  SPEED_312_NOR                  312
+#define  SPEED_315_NOR                  315
 #define  SPEED_360_NOR                  360
 #define  SPEED_TOF_NOR                  360
+#define  SPEED_250_RANGE                10
 #define  SPEED_300_RANGE                10
 #define  SPEED_312_RANGE                6
+#define  SPEED_315_RANGE                10
 #define  SPEED_360_RANGE                10
 #define  SPEED_TOF_RANGE                10
+#define  SPEED_180_MAX                  (SPEED_180_NOR+SPEED_250_RANGE)
+#define  SPEED_180_MIN                  (SPEED_180_NOR-SPEED_250_RANGE)
+#define  SPEED_250_MAX                  (SPEED_250_NOR+SPEED_250_RANGE)
+#define  SPEED_250_MIN                  (SPEED_250_NOR-SPEED_250_RANGE)
 #define  SPEED_300_MAX                  (SPEED_300_NOR+SPEED_300_RANGE)
 #define  SPEED_300_MIN                  (SPEED_300_NOR-SPEED_300_RANGE)
 #define  SPEED_312_MAX                  (SPEED_312_NOR+SPEED_312_RANGE)
 #define  SPEED_312_MIN                  (SPEED_312_NOR-SPEED_312_RANGE)
+#define  SPEED_315_MAX                  (SPEED_315_NOR+SPEED_315_RANGE)
+#define  SPEED_315_MIN                  (SPEED_315_NOR-SPEED_315_RANGE)
 #define  SPEED_360_MAX                  (SPEED_360_NOR+SPEED_360_RANGE)
 #define  SPEED_360_MIN                  (SPEED_360_NOR-SPEED_360_RANGE)
 #define  SPEED_TOF_MAX                  (SPEED_TOF_NOR+SPEED_TOF_RANGE)
@@ -126,6 +164,12 @@
 #define  NUMBER_CONTINUE_CIRCLE         50  
 #define  NUMBER_CONTINUE_ERROR_PACKET   10  
 
+#define  SENSOR_ERROR_SECOND            5  
+#define  SENSOR_ERROR_TIME_MS           1000  
+#define  ENCODER_ERROR_SECOND           5  
+#define  ENCODER_ERROR_TIME_MS          1000  
+#define  LDS_VOLTAGE_ERROR_SECOND       5  
+#define  PD_ERROR_TIME_MS               3000  
 
 union Fp32
 {
@@ -210,6 +254,27 @@ typedef struct tsSDKIDNew
     UCHAR        u8HardVer[FACT_NEW_HARD_LEN];
     UCHAR        u8ID[ID_LEN];
 }tsSDKIDNew;
+
+
+typedef struct tsSDKSN
+{
+	UINT16       u16Head;
+	UINT16       u16Len;
+	UINT16       u16Cal;
+	UCHAR        u8Type;
+	UCHAR        u8Ver;
+	UCHAR        u8FacInfo[5];
+	UCHAR        u8Reserve1[5];
+	UCHAR        u8SpeedInfo[2];
+	UCHAR        u8CalVer[3];
+	UCHAR        u8Reserve2[6];
+	UCHAR        u8HardVer[4];
+	UINT16       u16Ang;
+	UCHAR        u8Direction;
+	UCHAR        u8AngleCorrection;
+	UCHAR        u8Reserve3[4];
+	UCHAR        u8SN[20];
+}tsSDKSN;
 
 typedef struct tsIDX2
 {
@@ -307,7 +372,9 @@ class HCHead
 public:
     HCHead();
 
+	static UINT64 getCurrentTimestampNs();
     static UINT64 getCurrentTimestampUs();
+	static UINT64 getCurrentTimestampMs();
 
     static void eraseBuff(std::vector<UCHAR>& lstG,int iLen);
     static void eraseRangeData(LstPointCloud& lstG,int iLen);
@@ -329,6 +396,9 @@ static char*  print_curr_time()
 {
 	time_t now = time(nullptr);
 	tm* curr_tm = localtime(&now);
+
+	//tm curr_tm;
+	//localtime_s(&curr_tm,&now);
 	static char time[80] = { 0 };
 	strftime(time, 80, "%Y-%m-%d %H:%M:%S    ", curr_tm);
 	//printf(time);

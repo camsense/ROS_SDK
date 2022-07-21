@@ -19,6 +19,10 @@ This is a licence-free software, it can be used by anyone who try to build a bet
 #ifndef HC_SERIAL_H
 #define HC_SERIAL_H
 
+
+
+#define  UART_RX_POLL_MODE      1
+
 // Used for TimeOut operations
 //#include <sys/time.h>
 // Include for windows
@@ -53,12 +57,13 @@ public:
 
     int64_t GetTimeStamp();
     // Open a device
-    char openDevice (const char *Device, unsigned int Bauds);
+    char openDevice (const char *chPort, unsigned int iBauds);
 
     // Close the current device
     void closeDevice();
 
     char writeChar(const char Byte);
+	int  writeData2(unsigned char * pData, int iLen);
 
     int readChar(unsigned char *pByte,const unsigned int TimeOut_ms=0);
 
@@ -94,7 +99,9 @@ private:
 #endif
 #ifdef __linux__
     int m_fd;
-	int linuxUartSet(int fd, int speed, int flow_ctrl, int databits, int stopbits, int parity);
+	int setPollMode(const char *chPort, const unsigned int iBauds);
+	int setInterruptMode(const char *chPort, const unsigned int iBauds);
+	int setLinuxOtherBaud(int fd,int iBauds);
 #endif
 
 };

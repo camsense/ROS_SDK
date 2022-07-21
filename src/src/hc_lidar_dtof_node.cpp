@@ -47,7 +47,7 @@ void sdkCallBackFunSecondInfo(tsSDKStatistic sInfo)
 	outFile.open(strFile, std::ios::app);
 
 	char buff[128] = { 0 };
-	sprintf(buff, "%lld,%d,%d,%lld,%0.2f,%d,%d,%d,%d\n",
+	sprintf(buff, "%lld,%d,%d,%lld,%0.2f,%d,%d,%d,%lld\n",
 		sInfo.u64TimeStampS, sInfo.iNumPerPacket, sInfo.iGrayBytes, sInfo.u64FPS
 		, sInfo.dRMS,  sInfo.iValid, sInfo.iInvalid, sInfo.iPacketPerSecond
 		, sInfo.u64ErrorPacketCount);
@@ -62,7 +62,7 @@ void sdkCallBackFunSecondInfo(tsSDKStatistic sInfo)
 void sdkCallBackFunPointCloud(LstPointCloud lstG)
 {
  
-	printf("Main: sdkCallBackFunPointCloud Rx Points=%d\n", lstG.size());
+	printf("Main: sdkCallBackFunPointCloud Rx Points=%ld\n", lstG.size());
 
 	std::string strFile = "Raw_data.csv";
 
@@ -184,15 +184,15 @@ int main(int argc, char* argv[])
 #endif
 
 
-	int iBaud = 230400;//int iBaud = getBaud();
+	int iBaud = 115200;//int iBaud = getBaud();
 
 	std::string strLidarModel = "T3A";// std::string strLidarModel = getLidarModel();
-	strLidarModel = "T3B";
+	strLidarModel = "X1M";
 #endif
 
 	std::string port = "/dev/ttyUSB0";
-    int baudrate=230400;
-    std::string lidar_model = "T3B";
+    int baudrate=115200;
+    std::string lidar_model = "X2M";
 
 	std::string frame_id;
 	double angle_max,angle_min;
@@ -209,8 +209,8 @@ int main(int argc, char* argv[])
     ros::Publisher scan_pub = nh.advertise<sensor_msgs::LaserScan>("scan", 1000);
 	ros::NodeHandle nh_private("~");
     nh_private.param<std::string>("port", port, "/dev/ttyUSB0");
-    nh_private.param<int>("baudrate", baudrate, 230400);
-    nh_private.param<std::string>("lidar_model", lidar_model, "T3B");
+    nh_private.param<int>("baudrate", baudrate, 115200);
+    nh_private.param<std::string>("lidar_model", lidar_model, "X2M");
     nh_private.param<std::string>("frame_id", frame_id, "laser_frame");
     nh_private.param<double>("angle_max", angle_max , 3.141592);
     nh_private.param<double>("angle_min", angle_min , -3.141592);
@@ -237,7 +237,7 @@ int main(int argc, char* argv[])
     setSDKCircleDataMode();
 	
 	int iCount = 0;
-	uint64_t m_PointTime = 1e9 / 3400; //根据采样率算两个激光点时间间隔
+	//uint64_t m_PointTime = 1e9 / 3400; //根据采样率算两个激光点时间间隔
     int count=0;
 
 	if(angle_max < angle_min)
@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
             {
                 LstNodeDistQ2 lstG;
                 getSDKScanData(lstG, false);
-				printf( "Main: Poll DistQ2 Rx Points=%d\n" ,lstG.size() );
+				printf( "Main: Poll DistQ2 Rx Points=%ld\n" ,lstG.size() );
                 //for(auto sInfo : lstG)
                 {
 					//printf("Main: Angle=%0.2f,Dist=%d\n" ,(double)sInfo.angle_q6_checkbit/64.0f  , sInfo.distance_q2/4 );
@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
                         ros::Time  end_time = ros::Time::now();
                         //printf("start_time=%lu, end_time=%lu , diff_offset=%ld \n", start_time.toNSec() , end_time.toNSec() , end_time.toNSec()-start_time.toNSec() );
                         
-                        //printf("Main: total Rx Points=%d , value point=%d\n", lstG.size(),count);
+                        printf("Main: total Rx Points=%ld , value point=%d\n", lstG.size(),count);
                         count=0;
                         
                         reverse(lstG.begin(),lstG.end());

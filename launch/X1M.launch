@@ -1,0 +1,21 @@
+<launch>
+    <!-- 启动节点 -->
+    <node name="hc_lidar_dtof_node" pkg="hc_lidar_dtof" type="hc_lidar_dtof_node" output="screen" respawn="false">
+      <param name="port"         type="string" value="/dev/ttyUSB0"/>  
+      <param name="baudrate"     type="int" value="115200"/>
+      <param name="frame_id"     type="string" value="laser_frame"/>
+      <param name="lidar_model" type="string" value="X1M" />
+      <param name="angle_min"    type="double" value="-3.14" />
+      <param name="angle_max"    type="double" value="3.14" />
+      <param name="range_min"    type="double" value="0.1" />
+      <param name="range_max"    type="double" value="10.0" />
+      
+      <param name="is_ignore_angle" type="bool" value="false" />
+      <param name="ignore_array" type="string" value=""/>
+    </node>
+        
+    <node name="laser_to_base_footprint" pkg="tf" type="static_transform_publisher" 
+     args= "0.05 0 0.28 -0.02 0 0  base_footprint laser_frame 50" />
+
+</launch>
+

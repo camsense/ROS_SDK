@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-	bool hcSDKInitialize(const char* chPort, const char* chLidarModel="T3A", int iBaud=230400, int iReadTimeoutMs=2, bool bDistQ2=false, bool bGetLoopData=false, bool bPollMode=true);
+	bool hcSDKInitialize(const char* chPort, const char* chLidarModel, int iBaud, int iReadTimeoutMs, bool bDistQ2, bool bGetLoopData, bool bPollMode);
 	bool hcSDKUnInit();
 
 	//set callback function for error code
@@ -58,8 +58,10 @@ extern "C" {
 	//poll mode,get ScanData
 	bool getSDKScanData(std::list<tsNodeInfo>& dataList, bool bReverse = true);
 
+	//Factory mode for test
 	void setSDKFactoryMode(bool bFactoryMode = true);
 
+	//start the factory mode 
 	bool startSDKFactoryModeRun();
 	
 	//set one circle data to output 
@@ -68,7 +70,8 @@ extern "C" {
 	//set the lidar status is powered
 	void setSDKLidarPowerOn(bool bPowerOn);
 
-
+	//set the lidar low speed status
+	void setSDKLidarLowSpeed(bool bLow);
 
 #ifdef __cplusplus
 };

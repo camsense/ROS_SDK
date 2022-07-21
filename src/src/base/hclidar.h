@@ -15,6 +15,7 @@
 #include <condition_variable>
 #include <atomic>
 #include <functional>
+#include <map>
 
 #include "HcData.h"
 
@@ -24,7 +25,6 @@
 //typedef std::function<void(LstNodeDistQ2)>    CallBackFunDistQ2;
 //
 //typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds> MicroClock_type;
-
 
 typedef struct tsLDSAttr
 {
@@ -37,6 +37,7 @@ typedef struct tsLDSAttr
 	int     iSpeedMin;
 	double  dAngleStep;
 	double  dCirclePoints;
+	UINT64  u64TSStepNs;
 	tsLDSAttr()
 	{
 		dAngleOffsetD = 21;
@@ -48,9 +49,9 @@ typedef struct tsLDSAttr
 		iSpeedMin = SPEED_312_MIN;
 		dAngleStep = ANGLE_RESOLV_2000;
 		dCirclePoints = CICRLE_MAX_2000;
+		u64TSStepNs = 1e9/FPS_2000_NOR;
 	}
 }tsLDSAttr;
-
 
 class HCLidar
 {
@@ -163,19 +164,22 @@ public:
 	}
 	bool startFactoryModeRun();
 
-    void setCircleDataMode()
+	void setCircleDataMode()
 	{
 		m_bCircle = true;
 	}
 
 	void setLidarPowerOn(bool bPowerOn=true);
-    
+
+	void setLidarLowSpeed(bool bLow = true);
 private:
 	
-
+#if SHARK_ENABLE
+	
+#else
 	HCLidar();
 	HCLidar(const HCLidar& other);
-
+#endif
 
     void threadWork();
     void threadParse();
@@ -231,7 +235,8 @@ private:
 	LstPointCloud            m_lstCircle;
 	std::vector<LstPointCloud> m_Circles;
 
-
+	UINT64                   m_u64TSStart = 0;
+	UINT64                   m_u64TSEnd = 0;
 
 	std::atomic<bool>        m_bInitTimeout;
     std::atomic<bool>        m_bDisconnect;
@@ -239,40 +244,49 @@ private:
     std::atomic<bool>        m_bGetIDTimeOut;
     std::atomic<bool>        m_bHadFact;
     std::atomic<bool>        m_bGetFactTimeOut;
+	std::atomic<bool>        m_bCheckSpeed;
 
     bool                     m_bHadInfo;
     bool                     m_bX2ID = true;
-
+#if SHARK_ENABLE
+    std::string              m_strDevID=DEFAULT_ID;
+#else
 	std::string              m_strDevID = "";
-
+#endif
     std::string              m_strFactoryInfo=DEFAULT_FACTORY;
 
     tsSDKStatistic           m_sStatistic;
     std::mutex               m_mtxStatistic;
 
-
-	bool                     m_bCompensate = true;
-	tsLDSAttr                m_sAttr;
+	 
+    bool                     m_bThreadStart;
+    bool                     m_bCompensate = true;
+	tsLDSAttr                m_sAttr;//lidar attribute
 
     std::mutex               m_mtxInit;
     std::condition_variable  m_cvInit;
     bool                     m_bReady = false;
     tsSDKPara                m_sSDKPara;
     int                      m_iReadTimeoutCount=0;
-    int                      m_iFPSMax = 2120;
-    int                      m_iFPSMin = 2050;
-    int                      m_iSpeedMax = 420;
-    int                      m_iSpeedMin = 300;
-    int                      m_iCircleNumberMAX=415;
+	UINT64                   m_u64StartTimeNoData = 0;
+    
 
     int                      m_iInvalidFPSSecond=0;
     UINT64                   m_u64StartTimeLowSpeed=0;
     UINT64                   m_u64StartTimeHighSpeed=0;
+	UINT64                   m_u64StartTimeSpeed = 0;
     UINT64                   m_u64StartTimeSharkBlock=0;
     int                      m_iSharkBlockCount=0;
     UINT64                   m_u64StartTimeInvalidPoints=0;
     int                      m_iValidNumber = 0;
+	UINT64                   m_u64StartTimeFindPackHeader = 0;
+	UINT64                   m_u64StartTimeCheckSpeed = 0;
+	int                      m_iCheckSpeedCount = 0;
+	UINT16                   m_u16Speed = 0;
+	std::map<int, UINT64>    m_mapErrorCode;
+	std::mutex               m_mtxError;
 
+	UINT64                   m_u64CountS = 0;
     UINT64                   m_u64StartMS = 0;
     inline bool bIntervalOneSecond(UINT64& u64StartUS)
     {
@@ -300,26 +314,30 @@ private:
     bool calMCUFrame(char* ch,int iLen);
     bool getDevID(std::vector<UCHAR>& lstBuff);
     bool getStartInfo(std::vector<UCHAR>& lstBuff);
+	bool getNewSNInfo(std::vector<UCHAR>& lstBuff);
     bool getPointCloud(std::vector<UCHAR>& lstBuff);
-	bool getPointCloudTof(std::vector<UCHAR>& lstBuff);
     bool getMCUCmd(std::vector<UCHAR>& lstBuff);
 
     bool parserRangeEX(LstPointCloud &resultRange,const char * chBuff, int iIndex, int in_numData,int iPointSize);
-	bool parserRangeTof(LstPointCloud &resultRange, const char * chBuff, int iIndex, int in_numData, int iPointSize);
 	void compensate(double &angle, UINT16 &dist, const double theta_d, const double baseline_mm);
     bool checkDataCal(std::vector<UCHAR>& lstBuff, int iIndex);
 	bool checkDataCalTof(std::vector<UCHAR>& lstBuff, int iIndex);
     void checkReadPacketData();
-    void sendGetIDInfoSignal(bool bGetID);
+    //void sendGetIDInfoSignal(bool bGetID);
     void sendGetFactoryInfoSignal(bool bGetFact);
 
     void checkInvalidFPS(int iFPS);
     void checkInvalidLowSpeed(UINT16 u16Speed);
     void checkInvalidHighSpeed(UINT16 u16Speed);
+	void checkEncoderError(UINT16 u16Speed);
     void checkSharkBlocked();
     void checkSharkInvalidPoints(tsPointCloud& sData);
     void checkHadInitSuccess(bool bTimeout);
+	void checkLDSVoltage();
+	void checkPDCurrent();
+	void checkChangeSpeed();
 
+	void checkFindPackHeader();
 
     void grabScanDataWithLoop(std::list<tsNodeInfo>& nodeList, tsNodeInfo* nodebuffer, size_t buffLen);
     void pushValidData2Buffer(tsNodeInfo& nodeInfo, int index, tsNodeInfo* nodebuffer, int len);
@@ -336,6 +354,16 @@ private:
 	void pollModePointCloud();
 	void callBackFunPointCloud();
 	bool getOneCircleData();
+
+	bool getErrorCode(int iError, int iMs);
+
+
+	//////////////////////////////////////
+	bool rockCheckLDSInfo(UINT8* buffer, unLidarInfo& lds_info);
+	void rockDecodeLDSInfoPacket(UINT8* src, UINT8* dest, int& decode_size);
+	bool rockCheckCRC(unLidarInfo lds_info);
+
+	void resetParam();
 };
 
 #endif // HCLIDAR_H
