@@ -536,6 +536,17 @@ bool HCLidar::setLidarPara(const char* chLidarModel)
 		m_sAttr.dCirclePoints = CICRLE_MAX_2000;
 		m_sAttr.u64TSStepNs = 1e9 / FPS_2000_NOR;
 	}
+	else if (m_strLidarModel == T3B)
+	{
+		m_sAttr.dAngleOffsetD = 21;
+		m_sAttr.dBaseline_mm = 20;
+		m_sAttr.iFPSMax = FPS_TOF_MAX;
+		m_sAttr.iFPSMin = FPS_TOF_MIN;
+		m_sAttr.iSpeedMax = SPEED_TOF_MAX;
+		m_sAttr.iSpeedMin = SPEED_TOF_MIN;
+		m_sAttr.dAngleStep = ANGLE_RESOLV_TOF;
+		m_sAttr.dCirclePoints = CICRLE_MAX_TOF;
+	}
     else
     {
 
@@ -547,7 +558,6 @@ bool HCLidar::setLidarPara(const char* chLidarModel)
 BOOL HCLidar::initialize(const char* chPort, const char* chLidarModel,int iBaud, int iReadTimeoutMs,  bool bDistQ2,bool bGetLoopData, bool bPollMode)
 {
 	LOG_INFO("Init sdk\n");
-	LOG_INFO("%s\n",SDK_VER);
     if(m_bScanning)
     {
 
@@ -1725,12 +1735,21 @@ bool HCLidar::parserRangeEX(LstPointCloud &resultRange, const char * chBuff, int
 	m_lstSpeed.push_back(speed);
 
 
+	//LOG_INFO("Start=%0.4f,end=%0.4f\n", FA, LA);
+
+	double angle_cur = 0;
 	const double angle_offset = m_sAttr.dAngleOffsetD;
 	for (int i = 0; i < in_numData; ++i)
 	{
-		double Beforecompensation = FA + dAngle * i;
-		double angle_cur = FA + dAngle * i + angle_offset;
-		double Aftercompensation = angle_cur;
+		//double Beforecompensation = FA + dAngle * i;
+		//double angle_cur = FA + dAngle * i + angle_offset;
+
+		if (m_strLidarModel == "T3B")
+			angle_cur = FA + dAngle * i;
+		else
+			angle_cur = FA + dAngle * i + angle_offset;
+
+		//double Aftercompensation = angle_cur;
 		if (angle_cur > 360)
 		{
 			angle_cur -= 360;
@@ -1773,7 +1792,13 @@ bool HCLidar::parserRangeEX(LstPointCloud &resultRange, const char * chBuff, int
 		else if (m_bCompensate)
 		{
 			m_sStatistic.iValid++;
-			compensate(sData.dAngle, sData.u16Dist, m_sAttr.dTheta_d, m_sAttr.dBaseline_mm);
+			if (m_strLidarModel == "T3B")
+			{
+			}
+			else
+			{
+				compensate(sData.dAngle, sData.u16Dist, m_sAttr.dTheta_d, m_sAttr.dBaseline_mm);
+			}
 			sData.dAngleDisp = sData.dAngle;
 		}
 

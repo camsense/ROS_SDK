@@ -65,6 +65,8 @@
 #define  D2M1                           "D2M1"
 #define  D2AE                           "D2AE"
 
+#define  T3B                            "T3B"
+
 #define  PI_HC                          3.141592653589793
 
 #define  READ_BUFF_SIZE                 256
