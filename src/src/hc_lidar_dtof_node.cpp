@@ -1,6 +1,6 @@
 ﻿
 //#include "base/hclidar.h"
-#include "LidarTest.h"
+//#include "LidarTest.h"
 #include <stdio.h>
 #include <iostream>
 #include <string> 
@@ -75,7 +75,7 @@ void sdkCallBackFunPointCloud(LstPointCloud lstG)
     {
 		memset(buff,0,128);
 		sprintf(buff, "%lld,%0.3f,%0.3f,%d,%d,%d,%d,%d\n",
-			HCHead::getCurrentTimestampUs(), sInfo.dAngle, sInfo.dAngleRaw, sInfo.u16Dist,sInfo.bValid,sInfo.u16Speed,sInfo.u16Gray,sInfo.bOverRange);
+			sInfo.u64TimeStampNs, sInfo.dAngle, sInfo.dAngleRaw, sInfo.u16Dist,sInfo.bValid,sInfo.u16Speed,sInfo.u16Gray,sInfo.bOverRange);
 
 		outFile.write(buff, strlen(buff));
 
