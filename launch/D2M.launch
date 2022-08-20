@@ -4,7 +4,7 @@
       <param name="port"         type="string" value="/dev/ttyUSB0"/>  
       <param name="baudrate"     type="int" value="115200"/>
       <param name="frame_id"     type="string" value="laser_frame"/>
-      <param name="lidar_model" type="string" value="D2M" />
+      <param name="lidar_model" type="string" value="D2M8" />
       <param name="angle_min"    type="double" value="-3.14" />
       <param name="angle_max"    type="double" value="3.14" />
       <param name="range_min"    type="double" value="0.1" />
